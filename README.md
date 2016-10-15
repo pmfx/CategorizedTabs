@@ -2,6 +2,8 @@
 
 This plugin sort the TVs to their categories and replace the default tv-section with a tabpane which includes the categories as tabs. As an additional feature, you can transform the sections content, template-variables and permissions to single tabs within the default tabpane.
 
+![screenshot_1](https://cloud.githubusercontent.com/assets/10888055/19413848/fad8e2ca-933a-11e6-843b-b49900f01823.png)
+
 **Install**
 
 Use Package Manager or install manually:
