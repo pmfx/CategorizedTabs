@@ -1,0 +1,435 @@
+<?php
+/**
+ * $Id: ondocformrender.phtml 19 2010-03-24 19:25:44Z stefan $
+ * 
+ * Run through the tables which includes the inputfields and transform them to
+ * a smarter look and cleaner html. Its also really good for adding some js actions
+ * to them. Each input-field and tab is now accessible by a single id.
+ *  
+ *  // change label of pagetitle 
+ *  $E('#field-pagetitle .label label').setText('New Label for Pagetitle');
+ *  
+ *  // add new description/comment to pagetitle
+ *  $E('#field-pagetitle .label').adopt( new Element('span',{class:'comment'}).setText('New description for Pagetitle') );
+ *  
+ *  // move pagetitle after alias
+ *  $('field-pagetitle').injectAfter('field-alias');
+ *
+ *  // move the field to another position eg before the menuindex
+ *  $('field-description').injectBefore('field-menutitle');
+ * 
+ *  //hide complete field
+ *  $('field-link_attributes').setStyle('display','none');
+ *  
+ *  // move the field to another tab; to top
+ *  $('field-longtitle').injectTop('fieldcontainer-settings');
+ *  
+ *  // to bottom
+ *  $('field-template').injectInside('fieldcontainer-settings');
+ *
+ *  // from general to settings after published
+ *  $('field-parent').injectAfter('field-published');
+ *  
+ *  // set a value of a inputfield
+ *  $('tv7').setProperty('value','default value for this TV');
+ *  
+ *  // add help for a TV
+ *  $E('#field-tv7 .input').adopt(new Element('img',{src:'media/style/MODxCarbon/images/icons/b02_trans.gif',class:'tooltip',alt:'My Help'}) );
+ */
+?>
+<script type="text/javascript">
+//<![CDATA[
+if( typeof(uix_source_prepared) === 'undefined' )
+{
+    /**
+     * @see switch( fieldname ) loop.
+     * 
+     * @TODO: Strip the check from and set it as id for the inputfield will break the
+     * functionality of changestate. So find a better solution.
+     * 
+     * after rebuild, the source looks
+     *  <tr id="field-isfolder" class="field>   
+     *      <td class="label>   
+     *          <label for="isfolder">container</label>
+     *      </td>
+     *      <td class="input>   
+     *          <input type="checkbox" id="isfolder" onclick="changestate(document.mutate.isfolder);">
+     *          <input type="text" name="isfolder" />
+     *      </td>
+     *  </tr>
+     *
+     * Problems:
+     *    
+     * # IE6 will not fire onclick event by click on label
+     *   - solution could be using the onchange event
+     * # document.mutate.isfolder addresses now the same inputfield with id=isfolder
+     *   - Solution could be use a id changestate( $('') ).
+     * 
+     *  Or strip out this technique and use just one checkbox
+     *  on POST check if exist "if (isset($_POST['isfolder']))"
+     */
+    var _checkboxes = [
+        'publishedcheck',
+        'isfoldercheck',
+        'richtextcheck',
+        'donthitcheck',
+        'searchablecheck',
+        'cacheablecheck',
+        'syncsitecheck',
+        'hidemenucheck'
+    ];
+
+    /**
+     * create table for which_editor
+     * $('which_editor').injectAfter('field-pagetitle');
+     */
+    if( $E('select[name=which_editor]') !== null ){
+        new Element('table').adopt( 
+            new Element('tbody').adopt(
+                new Element('tr').adopt(
+                    new Element('td').adopt( $E('select[name=which_editor]').getPrevious() )
+                ).adopt(
+                    new Element('td').adopt( $E('select[name=which_editor]') )
+                )
+            )
+        ).injectAfter('ta');
+    }
+
+    $$('.sectionBody table').each( function( table ) {
+        /**
+         * mootools 1.11 can't select the n-th child. So get out, if table is a
+         * child of a another table/td. 
+         */
+        if( table.getParent().getTag() !== 'td' ) {
+
+            /**
+             * Get the "<table>"
+             *  
+             *  # add the class "fields" to them
+             *  # add the summary "input fields" to them
+             *  # set attribute "cellpadding" to "0"
+             *  # set attribute "cellpacing" to "0"
+             *  # remove attribute "width"
+             *  # remove attribute "border"
+             *  
+             *  Table-tag now look like this:
+             *  <table class="fields" cellpadding="0" cellpacing="0" summary="input fields">
+             */
+            //table.addClass('fields').setProperty('cellpadding','0').setProperty('cellspacing','0').setProperty('summary','input fields').removeProperty('width').removeProperty('border');
+            table.addClass('fields');
+            table.setProperty('cellpadding','0');
+            table.setProperty('cellspacing','0');
+            table.setProperty('summary','input fields');
+            table.removeProperty('width');
+            table.removeProperty('border');
+           
+
+            /**
+             * Get the first element(Its an tbody if willing or not).
+             *
+             *  # add the id "fieldcontainer-[TAB]"
+             *  
+             *  Table now look like this:
+             *  <table class="fields" cellpadding="0" cellpacing="0" summary="input fields">
+             *      <tbody id="fieldcontainer-[TABID|TV]">
+             *  
+             */
+
+            if( table.getParent().getProperty('id') && table.getParent().getProperty('id').contains('tab') ) {
+                table.getFirst().setProperty('id','fieldcontainer-'+table.getParent().getProperty('id').replace('tab','').toLowerCase() );
+            }
+
+            /**
+             * The TV section has no tab as parent, so make a new id
+             */
+
+            if( table.getParent().hasClass('tmplvars') ) {
+               table.getFirst().setProperty('id','fieldcontainer-tv');
+               /**
+                * Remove the splitting lines
+                */
+               table.getElements('div.split').getParent().getParent().each(function(split_row) {
+                   split_row.remove();
+               });
+            }
+
+            /**
+             * Get the "<tr>"
+             * remove attribute "style"
+             * add the class "field" to them
+             *
+             *  <table class="fields" cellpadding="0" cellpacing="0" summary="input fields">
+             *      <tbody id="fieldcontainer-[TABID|TV]">
+             *          <tr class="field" id="field-[inputname|TVID]">
+             */
+
+            var rows = table.getFirst().getChildren();
+            rows.each(function(row) {
+                row.removeProperty('style');
+                row.setProperty('class', 'field');
+
+                /**
+                 * Get the cols "<td>span.warning</td>" "<td>input</td>"
+                 */
+
+                 var cols = row.getChildren();
+               
+               /**
+                * Get the first "<td>"s of the current "<tr>"
+                *  
+                *  # add class "label"
+                *  # remove attribute "style" 
+                *  # remove attribute "align" 
+                *  # remove attribute "valign" 
+                *  # remove attribute "with" 
+                *  # remove line breaks "<br>" 
+                * 
+                *  <table class="fields" cellpadding="0" cellpacing="0" summary="input fields">
+                *      <tbody id="fieldcontainer-[TABID|TV]">
+                *          <tr class="field" id="field-[inputname|TVID]">
+                *              <td class="label">
+                *                   <label>pagetitle</label>
+                *                   <span class="comment">comment</span>
+                */
+               
+               if( cols[0] ){
+                   cols[0].addClass('label');
+                   cols[0].removeProperty('style');
+                   cols[0].removeProperty('align');
+                   cols[0].removeProperty('valign');
+                   cols[0].removeProperty('width');
+                   cols[0].getElements('br').each(function(br){
+                       br.remove();
+                   });
+
+                   /**
+                    * Transform the <span class="warning"> to <label>
+                    */
+                    if( cols[0].getElement('span.warning') !== null )
+                    {
+                        var span = cols[0].getElement('span.warning');
+                        span.replaceWith( new Element('label').setText( span.getText() ) );        
+                    }
+                    
+                    /**
+                     * Replace first "<td>" to <th>"
+                     *
+                     * <tr class="field" id="">
+                     *     <th class="label"><label>pagetitle
+                     *     <td class="input"><input name="pagetitle" />
+                     */
+                    /*
+                      cols[0].replaceWith( new Element('th').adopt( cols[0].getChildren() ) );
+                    */
+                }
+
+                /**
+                 * Get the second "<td>"s of the current "<tr>" where the input field is
+                 *  
+                 *  # add class "field_input"
+                 *  # remove attribute "style"
+                 *  # add attribute "id" to input if not exists
+                 *  # add attribute "for" to the associated label
+                 * 
+                 *  <table class="fields" cellpadding="0" cellpacing="0" summary="input fields">
+                 *      <tbody id="fieldcontainer-[TABID|TV]">
+                 *          <tr class="field" id="field-[inputname|TVID]">
+                 *              <td class="label"><label for="pagetitle">pagetitle</td>
+                 *              <td class="input"><input id="pagetitle" /></td>
+                 */
+
+                if( cols[1] ){
+                   cols[1].addClass('input');
+                   cols[1].removeProperty('style');
+                   var elements = $ES('textarea,input,select', cols[1]);
+
+                   /**
+                    * Get the input elements of this col "<td><input ... >"
+                    */
+                   if( elements[0] ) {
+                       //elements[0].removeProperty('style');
+                       /**
+                        * Take the elements name and set it as id for the row <tr>
+                        */
+                       var fieldname = elements[0].getProperty('name');
+
+                       /**
+                        * Remove "[]" <input name="tv3[]" ...> to id="tv3"
+                        */
+                       var fieldname = fieldname.replace('[]','');
+
+                       /**
+                        * make some corrections
+                        */
+
+                        switch( fieldname )
+                        {
+                            case 'pub_date':
+                            case 'unpub_date':
+
+                                /**
+                                 * move the example for dateformating on pub_date and unpub_data 
+                                 * to the same row where the calendarfield is.
+                                 * So its completely movable.
+                                 */
+                                var _row = row.getNext();
+                                _row.getElement('em').injectInside( row.getElement('td.input') );
+                                _row.remove();
+                                break;
+                            case 'contentType':
+ 
+                                /**
+                                 * Rename "contentType" to "content_type" for more consistency 
+                                 * in nameing.
+                                 */
+                                fieldname = 'content_type';
+                                break;
+                            default:
+
+                                /**
+                                 * Check for the checkboxes and strip the "check" from name
+                                 * @see notice at top
+                                 * 
+                                 * 'publishedcheck'     => published
+                                 * 'isfoldercheck'      => isfolder
+                                 * 'richtextcheck'      => richtextcheck
+                                 * 'donthitcheck'       => donthit
+                                 * 'searchablecheck'    => searchable
+                                 * 'cacheablecheck'     => cacheable
+                                 * 'syncsitecheck'      => syncsite
+                                 */
+                                if( _checkboxes.contains( fieldname ) ) {
+                                  //  fieldname = fieldname.replace('check','');
+                                }
+                                break;
+                        }
+
+                       var id = 'field-'+fieldname;
+                       row.setProperty('id', id );
+
+                       /**
+                        * If the input element has no "id" like the most content-vars
+                        * eg pagetitle, so add one.
+                        * <input id="pagetitle" ... />
+                        */
+                       
+                       if( elements[0].getProperty('id') === null ) {
+                           elements[0].setProperty('id', fieldname );
+                       }
+                        
+
+                       /**
+                        * Set the "for" attribute to the associated label
+                        */ 
+                       if( cols[0].getElement('label') !== null ) {
+                           cols[0].getElement('label').setProperty('for', fieldname );
+                       }
+                   }
+               }
+           });
+       }
+   });
+   /**
+    * Remove the splitting rows 
+    $$('div.split').getParent().getParent().each(function(split_row) {
+       split_row.remove();
+    });
+    */ 
+}
+/**
+ * Remove the loadingmask
+ */
+if( $chk( $('uix-loadingmask') ) ){
+    $('uix-loadingmask').setStyle('display','none');
+}
+//]]>
+</script>
+
+<?php
+/**
+ * Create a tab-pane which includes the categories tab-pages
+ */
+
+if( !empty( $tv_categories ) ): ?>
+<div class="tab-pane" id="tmplvars-pane">
+    <script type="text/javascript">
+        var tpTemplateVars = new WebFXTabPane( $('tmplvars-pane') );
+    </script>
+    <?php foreach( $tv_categories as $category ) : ?>
+        <?php if( !empty( $category['tplvars_data'] ) ) : ?>
+            <div class="tab-page" id="tabCategory<?php echo $category['id']; ?>">
+                <h2 class="tab" id="tabCategory<?php echo $category['id']; ?>-header"><?php echo $category['category']; ?></h2>
+                <script type="text/javascript">tpTemplateVars.addTabPage( $('tabCategory<?php echo $category['id']; ?>') );</script>
+                <table class="fields" cellspacing="0" cellpadding="0" summary="Template Vars">
+                <tbody id="fieldcontainer-category<?php echo $category['id']; ?>">
+                </tbody>
+                </table>
+            </div><!-- end __ div#tab-page -->
+            <script type="text/javascript">
+            //<![CDATA[    
+            <?php foreach( $category['tplvars_data'] as $row ) : ?>
+            if( $('field-tv<?php echo $row['id']?>') !== null ){ $('field-tv<?php echo $row['id']?>').injectInside('fieldcontainer-category<?php echo $row['category']?>'); }
+            <?php endforeach; ?>
+            //]]>
+            </script>
+        <?php endif;  // if !empty $category['tplvars_data'] ?>
+    <?php endforeach;  // foreach $categories as $catetory ?>
+</div><!-- end __ #documentTemplateVarsPane -->
+<?php endif; ?>
+<?php if( $e->params['move_content'] === 'true' ) : ?> 
+    <div class="tab-page" id="tabContent">
+        <h2 id="tabContent-header" class="tab"><?php echo $_lang['resource_content']?></h2>
+        <script type="text/javascript">tpSettings.addTabPage( $('tabContent') );</script>
+    </div>
+<?php endif; ?>
+<?php if( $e->params['move_tv'] === 'true' ) : ?>
+    <div class="tab-page" id="tabTV">
+        <h2 id="tabTV-header" class="tab"><?php echo $_lang["settings_templvars"]; ?></h2>
+        <script type="text/javascript">tpSettings.addTabPage( $('tabTV') );</script>
+    </div>
+<?php endif; ?>
+
+<script type="text/javascript">
+//<![CDATA[
+var _plugin_tvc_bodies = $$('div.sectionBody');
+<?php if( $e->params['move_content'] === 'true' ) : ?>   
+    if( $('ta') !== null ){
+        var plugin_tvc_section_content = $('ta').getParent();
+    	$('tabContent').adopt( plugin_tvc_section_content.getChildren() ).injectInside('documentPane');
+        plugin_tvc_section_content.getParent().getPrevious().remove();
+        plugin_tvc_section_content.getParent().remove();
+    }
+<?php endif; ?>
+<?php if( $e->params['move_tv'] === 'true' ) : ?>    
+    var plugin_tvc_section_tmplvars = $E('div.tmplvars');
+    if( $('tmplvars-pane') !== null ) {
+        $('tabTV').adopt('tmplvars-pane').injectInside('documentPane');
+    }
+    else{
+        $('tabTV').adopt(plugin_tvc_section_tmplvars.getChildren()).injectInside('documentPane');
+    }
+    plugin_tvc_section_tmplvars.getPrevious().remove();
+    plugin_tvc_section_tmplvars.remove();
+<?php else : ?>
+    if( $('tmplvars-pane') !== null ) {
+    	$('tmplvars-pane').injectTop( $E('div.tmplvars') );
+    }
+<?php endif; ?>
+//]]>
+</script>
+
+<style type="text/css">
+    table.fields{ width:99% }
+    table.fields table.mceLayout table{ width:auto;}
+    table.fields table.mceLayout td.mceIframeContainer{ background-color: #fff; }
+    table.fields tr td{ vertical-align: top; border-bottom: 0px dotted #ccc; padding: 3px 10px; }
+    table.fields tr td table tr td{ border-bottom: none; padding:0; }
+    table.fields table.mceLayout tr td{ border-bottom: none; padding:0; }
+    table.fields tr td.label{ width: 170px; }
+    table.fields tr td.input{ border-left: 0px solid #eee; }
+    table.fields tr td.input span.comment,
+    table.fields tr td.input em{ display:block; font-size:1em; }
+    table.fields tr td.label label,
+    table.fields tr td.label span.comment{ display:block; margin-right:10px; font-size:1em; padding-top: 0; }
+    table.fields tr td.label label{ margin-bottom:0; color:#444; font-weight:bold;}
+</style>
