@@ -2,7 +2,7 @@
 /**
  * CategorizedTabs
  *
- * This plugin sort the TVs to their categories and replace the default tv-section
+ * Sort Template Variables to their categories and replace the default Template Variables section with categorized tabs.
  *
  * @category    plugin
  * @version     1.0.1
