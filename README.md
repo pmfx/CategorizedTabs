@@ -35,6 +35,7 @@ That module gives you the possibility to manage and sort the modx-categories.
 
 **History**
 
+- 2016-10-21 Minor text change regarding new MODX "Manage Categories" feature (pmfx)
 - 2016-10-16 Make plugin compatible with MODX install script (pmfx)
 - 2016-10-01 Now works with MultiTV (pmfx)
 - 2010-03-26 Original v0.3.2 release by stefan
