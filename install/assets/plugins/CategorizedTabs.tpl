@@ -7,7 +7,7 @@
  * @category    plugin
  * @version     1.0.0
  * @license     http://creativecommons.org/licenses/GPL/2.0/ GNU Public License (GPL v2)
- * @internal    @properties &move_tv = Tab TV;list;true,false;false;desc;Transform Tv-section to a tab. &move_content = Tab Content;list;true,false;false;desc;Transform Content-section to a tab. &use_cm = Categories Manager in use;list;true,false;false;desc;The categories could displayed by a ordered ranking. If true and the Categories Manager is not installed, an error will occur.
+ * @internal    @properties &move_tv = TV tab;list;true,false;false;desc;Transform Tv-section to a tab. &move_content = Content tab;list;true,false;false;desc;Transform Content-section to a tab. &use_cm = Order tabs by category rank;list;true,false;false;desc;If you are using MODX older than 1.2 you will need to install CategoriesManager module https://github.com/pmfx/CategoriesManager to use it, or an error will occur. NOTE: Since MODX 1.2 there is no need to install module as it is built-in into system.
  * @internal    @events OnDocFormPrerender,OnDocFormRender
  * @internal    @modx_category Manager and Admin
  * @internal    @installset base
