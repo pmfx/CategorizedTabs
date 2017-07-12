@@ -83,13 +83,13 @@ if( typeof(uix_source_prepared) === 'undefined' )
      * create table for which_editor
      * $('which_editor').injectAfter('field-pagetitle');
      */
-    if( $E('select[name=which_editor]') !== null ){
+    if( document.querySelector('select[name=which_editor]') !== null ){
         new Element('table').adopt( 
             new Element('tbody').adopt(
                 new Element('tr').adopt(
-                    new Element('td').adopt( $E('select[name=which_editor]').getPrevious() )
+                    new Element('td').adopt( document.querySelector('select[name=which_editor]')..previousSibling )
                 ).adopt(
-                    new Element('td').adopt( $E('select[name=which_editor]') )
+                    new Element('td').adopt( document.querySelector('select[name=which_editor]') )
                 )
             )
         ).injectAfter('ta');
