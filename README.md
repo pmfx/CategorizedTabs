@@ -10,8 +10,6 @@ The switch "Categories Manager in use" depends on the "Categories Manager" modul
 That module gives you the possibility to manage and sort the EVO categories with bulk actions.
 Since EVO 1.2.2 Categories Manager is built-in into the system. 
 
-6 Save plugin
-
 **History**
 
 - 2017-07-12 Fixed compatibility issues with new EVO dropdown theme (64j)
