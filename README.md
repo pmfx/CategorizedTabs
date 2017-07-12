@@ -4,34 +4,19 @@ Sort Template Variables to their categories and replace the default Template Var
 
 ![screenshot_1](https://cloud.githubusercontent.com/assets/10888055/19413848/fad8e2ca-933a-11e6-843b-b49900f01823.png)
 
-**Install**
+**Note:**
 
-Use Package Manager or install manually:
-
-1 Copy the files to assets/plugins/categorizedtabs
-
-2 Create new Plugin "CategorizedTabs"
-
-3 Set Plugin-Event
-
-"OnDocFormPrerender"
-"OnDocFormRender"
-
-4 Set Plugin-Code to
-
-include MODX_BASE_PATH . 'assets/plugins/categorizedtabs/plugin.php';
-
-5 Set Plugin-Configuration to
-
-
-Note:
-
-The switch "Categories Manager in use" is depend on the module 
+The switch "Categories Manager in use" depends on the "Categories Manager" module - https://github.com/pmfx/CategoriesManager
+That module gives you the possibility to manage and sort the EVO categories with bulk actions.
+Since EVO 1.2.2 Categories Manager is built-in into the system. 
 
 6 Save plugin
 
 **History**
 
+- 2017-07-12 Fixed compatibility issues with new EVO dropdown theme (64j)
+- 2016-10-21 Minor text change regarding new EVO "Manage Categories" feature (pmfx)
+- 2016-10-16 Make plugin compatible with EVO install script (pmfx)
 - 2016-10-01 Now works with MultiTV (pmfx)
 - 2010-03-26 Original v0.3.2 release by stefan
 
