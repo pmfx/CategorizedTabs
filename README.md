@@ -1,3 +1,7 @@
+# Deprecated
+
+## Since Evolution CMS 1.3.4 CategorizedTabs features were built-in into the system as "Group TV" system setting :)
+
 # CategorizedTabs
 
 Sort Template Variables to their categories and replace the default Template Variables section with categorized tabs. As an additional feature, you can transform the sections resource Content, Template Variables to single tabs within the default tabpane.
